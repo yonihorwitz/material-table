@@ -8,7 +8,7 @@ const StyledComponent = PropTypes.shape({
 
 export const propTypes = {
   actions: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.func, PropTypes.shape({
-    icon: PropTypes.oneOfType([PropTypes.element, PropTypes.func, PropTypes.string]).isRequired,
+    icon: PropTypes.oneOfType([PropTypes.element, PropTypes.func, PropTypes.string, RefComponent]).isRequired,
     isFreeAction: PropTypes.bool,
     tooltip: PropTypes.string,
     onClick: PropTypes.func.isRequired,
@@ -40,7 +40,7 @@ export const propTypes = {
     hidden: PropTypes.bool,
     initialEditValue: PropTypes.any,
     lookup: PropTypes.object,
-    editable: PropTypes.oneOf(['always', 'onUpdate', 'onAdd', 'never', PropTypes.func]),
+    editable: PropTypes.oneOfType([PropTypes.func, PropTypes.oneOf(['always', 'onUpdate', 'onAdd', 'never'])]),
     removable: PropTypes.bool,
     render: PropTypes.func,
     searchable: PropTypes.bool,
@@ -97,6 +97,7 @@ export const propTypes = {
     LastPage: PropTypes.oneOfType([PropTypes.element, PropTypes.func, RefComponent]),
     NextPage: PropTypes.oneOfType([PropTypes.element, PropTypes.func, RefComponent]),
     PreviousPage: PropTypes.oneOfType([PropTypes.element, PropTypes.func, RefComponent]),
+    Refresh: PropTypes.oneOfType([PropTypes.element, PropTypes.func, RefComponent]),
     ResetSearch: PropTypes.oneOfType([PropTypes.element, PropTypes.func, RefComponent]),
     Search: PropTypes.oneOfType([PropTypes.element, PropTypes.func, RefComponent]),
     SortArrow: PropTypes.oneOfType([PropTypes.element, PropTypes.func, RefComponent]),
@@ -110,7 +111,7 @@ export const propTypes = {
     actionsColumnIndex: PropTypes.number,
     addRowPosition: PropTypes.oneOf(['first', 'last']),
     columnsButton: PropTypes.bool,
-    defaultExpanded: PropTypes.bool,
+    defaultExpanded: PropTypes.bool | PropTypes.func,
     debounceInterval: PropTypes.number,
     detailPanelType: PropTypes.oneOf(['single', 'multiple']),
     doubleHorizontalScroll: PropTypes.bool,
@@ -126,6 +127,7 @@ export const propTypes = {
     headerStyle: PropTypes.object,
     initialPage: PropTypes.number,
     maxBodyHeight: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    minBodyHeight: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     loadingType: PropTypes.oneOf(['overlay', 'linear']),
     padding: PropTypes.oneOf(['default', 'dense']),
     paging: PropTypes.bool,
@@ -134,6 +136,7 @@ export const propTypes = {
     paginationType: PropTypes.oneOf(['normal', 'stepped']),
     rowStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
     search: PropTypes.bool,
+    searchText: PropTypes.string,
     toolbarButtonAlignment: PropTypes.oneOf(['left', 'right']),
     searchFieldAlignment: PropTypes.oneOf(['left', 'right']),
     searchFieldStyle: PropTypes.object,
@@ -146,6 +149,7 @@ export const propTypes = {
     showTextRowsSelected: PropTypes.bool,
     sorting: PropTypes.bool,
     toolbar: PropTypes.bool,
+    thirdSortClick: PropTypes.bool,
   }),
   localization: PropTypes.shape({
     grouping: PropTypes.shape({
@@ -168,6 +172,9 @@ export const propTypes = {
   onOrderChange: PropTypes.func,
   onRowClick: PropTypes.func,
   onTreeExpandChange: PropTypes.func,
+  onQueryChange: PropTypes.func,
   tableRef: PropTypes.any,
-  style: PropTypes.object
+  style: PropTypes.object,
+  page: PropTypes.number,
+  totalCount: PropTypes.number
 };

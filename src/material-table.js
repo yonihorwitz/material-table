@@ -61,6 +61,7 @@ export default class MaterialTable extends React.Component {
     }
 
     this.dataManager.setColumns(props.columns);
+    this.dataManager.changeSearchText(props.options.searchText);
     this.dataManager.setDefaultExpanded(props.options.defaultExpanded);
 
     if (this.isRemoteData(props)) {
@@ -102,8 +103,8 @@ export default class MaterialTable extends React.Component {
     calculatedProps.components = { ...MaterialTable.defaultProps.components, ...calculatedProps.components };
     calculatedProps.icons = { ...MaterialTable.defaultProps.icons, ...calculatedProps.icons };
     calculatedProps.options = { ...MaterialTable.defaultProps.options, ...calculatedProps.options };
-
-    const localization = calculatedProps.localization.body;
+		
+    const localization =  { ...MaterialTable.defaultProps.localization.body, ...calculatedProps.localization.body };
 
     calculatedProps.actions = [...(calculatedProps.actions || [])];
     if (calculatedProps.editable) {
@@ -156,6 +157,8 @@ export default class MaterialTable extends React.Component {
 
   isRemoteData = (props) => !Array.isArray((props || this.props).data)
 
+  isOutsidePageNumbers = (props) => (props.page !== undefined && props.totalCount !== undefined);
+
   onAllSelected = (checked) => {
     this.dataManager.changeAllSelected(checked);
     this.setState(this.dataManager.getRenderState(), () => this.onSelectionChange());
@@ -201,7 +204,9 @@ export default class MaterialTable extends React.Component {
       });
     }
     else {
-      this.dataManager.changeCurrentPage(page);
+      if (!this.isOutsidePageNumbers(this.props)) {
+        this.dataManager.changeCurrentPage(page);
+      }
       this.setState(this.dataManager.getRenderState(), () => {
         this.props.onChangePage && this.props.onChangePage(page);
       });
@@ -429,6 +434,15 @@ export default class MaterialTable extends React.Component {
     const props = this.getProps();
     if (props.options.paging) {
       const localization = { ...MaterialTable.defaultProps.localization.pagination, ...this.props.localization.pagination };
+
+      const isOutsidePageNumbers = this.isOutsidePageNumbers(props);
+      const currentPage = isOutsidePageNumbers
+        ? Math.min(props.page, Math.floor(props.totalCount / this.state.pageSize))
+        : this.state.currentPage;
+      const totalCount = isOutsidePageNumbers
+        ? props.totalCount
+        : this.state.data.length;
+
       return (
         <Table>
           <TableFooter style={{ display: 'grid' }}>
@@ -442,14 +456,14 @@ export default class MaterialTable extends React.Component {
                 }}
                 style={{ float: props.theme.direction === "rtl" ? "" : "right", overflowX: 'auto' }}
                 colSpan={3}
-                count={this.isRemoteData() ? this.state.query.totalCount : this.state.data.length}
+                count={this.isRemoteData() ? this.state.query.totalCount : totalCount}
                 icons={props.icons}
                 rowsPerPage={this.state.pageSize}
                 rowsPerPageOptions={props.options.pageSizeOptions}
                 SelectProps={{
                   renderValue: value => <div style={{ padding: '0px 5px' }}>{value + ' ' + localization.labelRowsSelect + ' '}</div>
                 }}
-                page={this.isRemoteData() ? this.state.query.page : this.state.currentPage}
+                page={this.isRemoteData() ? this.state.query.page : currentPage}
                 onChangePage={this.onChangePage}
                 onChangeRowsPerPage={this.onChangeRowsPerPage}
                 ActionsComponent={(subProps) => props.options.paginationType === 'normal' ?
@@ -516,7 +530,7 @@ export default class MaterialTable extends React.Component {
             <Droppable droppableId="headers" direction="horizontal">
               {(provided, snapshot) => (
                 <div ref={provided.innerRef}>
-                  <div style={{ maxHeight: props.options.maxBodyHeight, overflowY: 'auto' }}>
+                  <div style={{ maxHeight: props.options.maxBodyHeight, minHeight: props.options.minBodyHeight, overflowY: 'auto' }}>
                     <Table>
                       {props.options.header &&
                         <props.components.Header
@@ -526,7 +540,11 @@ export default class MaterialTable extends React.Component {
                           headerStyle={props.options.headerStyle}
                           icons={props.icons}
                           selectedCount={this.state.selectedCount}
-                          dataCount={props.parentChildData ? this.state.treefiedDataLength : this.state.data.length}
+                          dataCount={
+                            props.parentChildData ? this.state.treefiedDataLength : (
+                              (this.state.columns.filter(col => col.tableData.groupOrder > -1).length > 0) ? this.state.groupedDataLength : this.state.data.length
+                            )
+                          }
                           hasDetailPanel={!!props.detailPanel}
                           detailPanelColumnAlignment={props.options.detailPanelColumnAlignment}
                           showActionsColumn={props.actions && props.actions.filter(a => !a.isFreeAction && !this.props.options.selection).length > 0}
@@ -540,6 +558,7 @@ export default class MaterialTable extends React.Component {
                           grouping={props.options.grouping}
                           isTreeData={this.props.parentChildData !== undefined}
                           draggable={props.options.draggable}
+                          thirdSortClick={props.options.thirdSortClick}
                         />
                       }
                       <props.components.Body

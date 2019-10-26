@@ -19,7 +19,7 @@ export interface MaterialTableProps<RowData extends object> {
   isLoading?: boolean;
   title?: string | React.ReactElement<any>;
   options?: Options;
-  parentChildData?: (row: RowData, rows: RowData[]) => RowData[];
+  parentChildData?: (row: RowData, rows: RowData[]) => RowData | undefined;
   localization?: Localization;
   onChangeRowsPerPage?: (pageSize: number) => void;
   onChangePage?: (page: number) => void;
@@ -32,8 +32,11 @@ export interface MaterialTableProps<RowData extends object> {
   onSearchChange?: (searchText: string) => void;
   onSelectionChange?: (data: RowData[], rowData?: RowData) => void;
   onTreeExpandChange?: (data: any, isExpanded: boolean) => void;
+  onQueryChange?: (query: Query<RowData>) => void;
   style?: React.CSSProperties;
   tableRef?: any;
+  page?: number;
+  totalCount?: number;
 }
 
 export interface Filter<RowData extends object> {
@@ -106,7 +109,7 @@ export interface Column<RowData extends object> {
   editComponent?: ((props: EditComponentProps<RowData>) => React.ReactElement<any>);
   emptyValue?: string | React.ReactElement<any> | ((data: any) => React.ReactElement<any> | string);
   export?: boolean;
-  field?: keyof RowData;
+  field?: keyof RowData | string;
   filtering?: boolean;
   filterPlaceholder?: string;
   filterCellStyle?: React.CSSProperties;
@@ -182,7 +185,7 @@ export interface Options {
   actionsColumnIndex?: number;
   addRowPosition?: ('first' | 'last');
   columnsButton?: boolean;
-  defaultExpanded?: boolean;
+  defaultExpanded?: boolean | ((rowData: any) => boolean);
   debounceInterval?: number;
   detailPanelType?: ('single' | 'multiple');
   doubleHorizontalScroll?: boolean;
@@ -195,11 +198,13 @@ export interface Options {
   exportCsv?: (columns: any[], renderData: any[]) => void;
   filtering?: boolean;
   filterCellStyle?: React.CSSProperties;
+  groupRowSeparator?: string;
   header?: boolean;
   headerStyle?: React.CSSProperties;
   initialPage?: number;
   loadingType?: ('overlay' | 'linear');
   maxBodyHeight?: number | string;
+  minBodyHeight?: number | string;
   padding?: ('default' | 'dense');
   paging?: boolean;
   grouping?: boolean;
@@ -247,11 +252,15 @@ export interface Localization {
   };
   pagination?: {
     firstTooltip?: string;
+    firstAriaLabel?: string;
     previousTooltip?: string;
+    previousAriaLabel?: string,
     nextTooltip?: string;
+    nextAriaLabel?: string,
     labelDisplayedRows?: string;
     labelRowsPerPage?: string;
     lastTooltip?: string;
+    lastAriaLabel?: string,
     labelRowsSelect?: string;
   };
   toolbar?: {

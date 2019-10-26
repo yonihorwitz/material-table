@@ -17,6 +17,7 @@ export default class DataManager {
   selectedCount = 0;
   treefiedDataLength = 0;
   treeDataMaxLevel = 0;
+  groupedDataLength = 0;
   defaultExpanded = false;
 
   data = [];
@@ -46,11 +47,14 @@ export default class DataManager {
     this.selectedCount = 0;
 
     this.data = data.map((row, index) => {
-      row.tableData = { ...row.tableData, id: index };
-      if (row.tableData.checked) {
+      const localRow = {
+        ...row,
+        tableData: { ...row.tableData, id: index }
+      };
+      if (localRow.tableData.checked) {
         this.selectedCount++;
       }
-      return row;
+      return localRow;
     });
 
     this.filtered = false;
@@ -476,7 +480,8 @@ export default class DataManager {
       searchText: this.searchText,
       selectedCount: this.selectedCount,
       treefiedDataLength: this.treefiedDataLength,
-      treeDataMaxLevel: this.treeDataMaxLevel
+      treeDataMaxLevel: this.treeDataMaxLevel,
+      groupedDataLength: this.groupedDataLength
     };
   }
 
@@ -593,6 +598,7 @@ export default class DataManager {
 
   groupData() {
     this.sorted = this.paged = false;
+    this.groupedDataLength = 0;
 
     const tmpData = [...this.searchedData];
 
@@ -612,7 +618,7 @@ export default class DataManager {
 
         if (!group) {
           const path = [...(o.path || []), value];
-          let oldGroup = this.findGroupByGroupPath(this.groupedData, path) || { isExpanded: (this.defaultExpanded ? true : false) };
+          let oldGroup = this.findGroupByGroupPath(this.groupedData, path) || { isExpanded: (typeof this.defaultExpanded ==='boolean') ? this.defaultExpanded : false };
 
           group = { value, groups: [], groupsIndex: {}, data: [], isExpanded: oldGroup.isExpanded, path: path };
           o.groups.push(group);
@@ -622,6 +628,7 @@ export default class DataManager {
       }, object);
 
       object.data.push(currentRow);
+      this.groupedDataLength++;
 
       return result;
     }, { groups: [], groupsIndex: {} });
@@ -699,7 +706,10 @@ export default class DataManager {
     // for all data rows, restore initial expand if no search term is available and remove items that shouldn't be there
     this.data.forEach(rowData => {
       if (!this.searchText && !this.columns.some(columnDef => columnDef.tableData.filterValue)) {
-        rowData.tableData.isTreeExpanded = rowData.tableData.isTreeExpanded === undefined ? this.defaultExpanded : rowData.tableData.isTreeExpanded;
+        if (rowData.tableData.isTreeExpanded === undefined) {
+          var isExpanded = (typeof this.defaultExpanded ==='boolean') ? this.defaultExpanded : this.defaultExpanded(rowData);
+          rowData.tableData.isTreeExpanded = isExpanded;
+        } 
       }
       const hasSearchMatchedChildren = rowData.tableData.isTreeExpanded;
 
