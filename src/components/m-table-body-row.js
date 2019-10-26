@@ -303,7 +303,6 @@ export default class MTableBodyRow extends React.Component {
             if (data.tableData.editing) {
               return (
                 <this.props.components.EditRow
-                  {...this.props}
                   columns={this.props.columns.filter(columnDef => { return !columnDef.hidden })}
                   components={this.props.components}
                   data={data}
